@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MoodTrip｜个性化周末出游推荐助手</title>
+    <meta
+      name="description"
+      content="MoodTrip 根据历史偏好、每日状态和近期重复度，生成可解释的个性化出游建议。"
+    />
+    <link rel="stylesheet" href="./assets/styles/main.css" />
+    <script src="https://webapi.amap.com/loader.js"></script>
+  </head>
+  <body>
+    <main class="page-shell">
+      <aside class="portfolio-note" aria-label="项目说明">
+        <span>AI PRODUCT PROTOTYPE</span>
+        <p>公开演示版 · 数据仅保存在当前浏览器 · 不包含真实用户信息</p>
+      </aside>
+
+      <section class="hero-card panel">
+        <div class="hero-copy">
+          <p class="eyebrow">MOODTRIP · WEEKEND PLANNER</p>
+          <h1>把“去哪儿”变成<br />一份有理由的推荐</h1>
+          <p class="hero-text">
+            结合历史出游偏好、每日状态和近期重复度，生成更符合当下需求的周末方案。
+          </p>
+          <div class="hero-tags" aria-label="产品能力">
+            <span>偏好建模</span>
+            <span>可解释推荐</span>
+            <span>反馈式迭代</span>
+          </div>
+        </div>
+
+        <div class="hero-visual product-visual" aria-label="MoodTrip 推荐逻辑示意">
+          <div class="visual-orbit orbit-one"></div>
+          <div class="visual-orbit orbit-two"></div>
+          <div class="visual-card visual-card-primary">
+            <span class="visual-label">TODAY</span>
+            <strong>想放松，少走路</strong>
+            <p>状态已加入推荐权重</p>
+          </div>
+          <div class="visual-card visual-card-secondary">
+            <span>偏好标签</span>
+            <div><b>咖啡</b><b>散步</b><b>安静</b></div>
+          </div>
+          <div class="visual-route">
+            <span>01</span>
+            <p>运河慢游</p>
+            <em>匹配度 86%</em>
+          </div>
+        </div>
+      </section>
+
+      <nav class="story-strip panel" aria-label="页面快捷入口">
+        <a class="story-item" href="#next-trip">
+          <span class="story-icon">01</span>
+          <div>
+            <h2>制定出游计划</h2>
+            <p>选择时间、地点和餐饮偏好，形成可分享的方案。</p>
+          </div>
+        </a>
+        <a class="story-item" href="#memory-book">
+          <span class="story-icon">02</span>
+          <div>
+            <h2>积累偏好数据</h2>
+            <p>记录活动、评分与避雷点，自动提取用户标签。</p>
+          </div>
+        </a>
+        <a class="story-item" href="#recommendations">
+          <span class="story-icon">03</span>
+          <div>
+            <h2>获得可解释推荐</h2>
+            <p>综合偏好、状态和新鲜度，说明每条建议的原因。</p>
+          </div>
+        </a>
+      </nav>
+
+      <section class="panel mood-panel" id="daily-mood">
+        <div class="mood-copy">
+          <p class="section-kicker">TODAY'S CONTEXT</p>
+          <h2>今天是什么状态？</h2>
+          <p>选择当前状态，推荐排序会即时调整。状态仅在当天有效。</p>
+        </div>
+        <div class="mood-options" id="moodOptions" role="group" aria-label="选择今天的状态">
+          <button type="button" data-mood="relaxed" data-label="想放松">想放松</button>
+          <button type="button" data-mood="outdoor" data-label="想出门走走">想出门走走</button>
+          <button type="button" data-mood="tired" data-label="有点累">有点累</button>
+          <button type="button" data-mood="food" data-label="想吃点好的">想吃点好的</button>
+          <button type="button" data-mood="quiet" data-label="想安静待着">想安静待着</button>
+          <button type="button" data-mood="novel" data-label="想试点新的">想试点新的</button>
+        </div>
+        <p class="mood-feedback" id="moodFeedback" aria-live="polite">尚未选择今日状态</p>
+      </section>
+
+      <section class="planner-grid" id="next-trip">
+        <section class="panel selection-panel">
+          <div class="section-head">
+            <p class="section-kicker">STEP 1 · TIME</p>
+            <h2>选择出游时间</h2>
+          </div>
+          <div class="datetime-grid">
+            <label class="field-block">
+              <span>出游日期</span>
+              <div class="select-row three-selects">
+                <select id="yearSelect" aria-label="选择年份"></select>
+                <select id="monthSelect" aria-label="选择月份"></select>
+                <select id="daySelect" aria-label="选择日期"></select>
+              </div>
+            </label>
+            <label class="field-block">
+              <span>出游时间</span>
+              <div class="select-row two-selects">
+                <select id="hourSelect" aria-label="选择小时"></select>
+                <select id="minuteSelect" aria-label="选择分钟"></select>
+              </div>
+            </label>
+          </div>
+          <p class="helper-note" id="todayHelper">正在读取今天的日期，过去的日期会自动隐藏。</p>
+        </section>
+
+        <section class="panel selection-panel">
+          <div class="section-head">
+            <p class="section-kicker">STEP 2 · PLACE</p>
+            <h2>选择目的地</h2>
+          </div>
+          <div class="map-shell">
+            <div class="map-toolbar">
+              <span class="map-badge">演示区域：杭州</span>
+              <button class="secondary-btn map-reset-btn" id="resetMapBtn" type="button">回到默认区域</button>
+            </div>
+            <form class="place-search" id="placeSearchForm" role="search">
+              <label class="place-search-field" for="placeSearchInput">
+                <span aria-hidden="true">⌕</span>
+                <input
+                  id="placeSearchInput"
+                  type="search"
+                  placeholder="搜索商圈、景点或地址，例如：西溪湿地"
+                  autocomplete="off"
+                  list="placeSearchSuggestions"
+                  aria-label="搜索目的地"
+                />
+              </label>
+              <datalist id="placeSearchSuggestions">
+                <option value="良渚文化村"></option>
+                <option value="小河直街历史文化街区"></option>
+                <option value="西湖文化广场"></option>
+                <option value="西溪国家湿地公园"></option>
+                <option value="湖滨银泰in77"></option>
+              </datalist>
+              <button class="primary-btn place-search-btn" type="submit">搜索地点</button>
+            </form>
+            <p class="place-search-status" id="placeSearchStatus" aria-live="polite"></p>
+            <div id="mapContainer" class="map-container" aria-label="地图选点"></div>
+            <p class="helper-note" id="mapFallbackText">配置地图服务后可点击选点；未配置时仍可使用预设地点和外部搜索。</p>
+            <div class="place-display">
+              <span class="place-label">当前选择</span>
+              <strong id="selectedPlaceText">杭州市</strong>
+              <p id="selectedPlaceHint">选择一个预设地点，或配置地图服务后进行精确选点。</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel selection-panel">
+          <div class="section-head">
+            <p class="section-kicker">STEP 3 · FOOD</p>
+            <h2>选择餐饮偏好</h2>
+          </div>
+          <label class="food-input-box" for="foodInput">
+            <span>也可以输入更具体的餐饮需求</span>
+            <input
+              id="foodInput"
+              type="text"
+              placeholder="例如：韩式烤肉、火锅、寿司、草莓蛋糕"
+            />
+          </label>
+          <div class="option-grid" data-choice-group="food"></div>
+        </section>
+      </section>
+
+      <section class="panel summary-panel">
+        <div class="summary-top">
+          <div>
+            <p class="section-kicker">TRIP PLAN</p>
+            <h2>本次出游方案</h2>
+          </div>
+          <div class="meter-wrap" aria-hidden="true">
+            <div class="meter-meter"><span id="meterFill"></span></div>
+            <p id="meterText">正在整理方案</p>
+          </div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-line"><span class="summary-label">时间</span><strong id="summaryTime">正在准备日期 · 待选择时分</strong></div>
+          <div class="summary-line"><span class="summary-label">地点</span><strong id="summaryPlace">杭州市</strong></div>
+          <div class="summary-line"><span class="summary-label">餐饮</span><strong id="summaryFood">尚未选择餐饮偏好</strong></div>
+          <div class="message-box" id="finalMessage">完成选择后，这里会生成一份可直接分享的出游方案。</div>
+        </div>
+        <div class="summary-actions">
+          <button class="primary-btn" id="copyPlanBtn" type="button">复制方案</button>
+          <button class="secondary-btn" id="sharePlanBtn" type="button">系统分享</button>
+        </div>
+        <p class="tips-text">所有选择都只在当前页面处理，不会上传个人数据。</p>
+        <p class="feedback-text" id="feedbackText" aria-live="polite"></p>
+      </section>
+
+      <section class="memory-layout" id="memory-book">
+        <section class="panel memory-form-panel">
+          <div class="section-head memory-heading">
+            <div><p class="section-kicker">PREFERENCE INPUT</p><h2>记录一次出游</h2></div>
+            <p>输入活动、评分和感受，系统会自动提取偏好与避雷标签。</p>
+          </div>
+          <form id="memoryForm" class="memory-form">
+            <div class="memory-form-grid">
+              <label class="field-block"><span>日期</span><input id="memoryDate" name="date" type="date" required /></label>
+              <label class="field-block"><span>地点</span><input id="memoryPlace" name="place" type="text" placeholder="例如：西湖边、良渚文化村" required /></label>
+            </div>
+            <label class="field-block"><span>主要活动</span><input id="memoryActivity" name="activity" type="text" placeholder="例如：散步、逛展、拍照、看电影" required /></label>
+            <div class="memory-form-grid">
+              <label class="field-block"><span>餐饮</span><input id="memoryFood" name="food" type="text" placeholder="例如：日料、咖啡和蛋糕" /></label>
+              <label class="field-block">
+                <span>满意程度</span>
+                <select id="memoryRating" name="rating" required>
+                  <option value="5">5 分 · 非常喜欢</option><option value="4">4 分 · 比较满意</option>
+                  <option value="3">3 分 · 基本符合</option><option value="2">2 分 · 不太满意</option><option value="1">1 分 · 建议避开</option>
+                </select>
+              </label>
+            </div>
+            <label class="field-block"><span>喜欢或需要调整的地方</span><textarea id="memoryNote" name="note" rows="3" placeholder="例如：环境安静、甜品不错；但周末排队太久。"></textarea></label>
+            <div class="memory-form-footer">
+              <label class="repeat-choice"><input id="memoryRepeat" name="repeat" type="checkbox" checked /><span>愿意再次体验类似安排</span></label>
+              <button class="primary-btn" type="submit">保存记录</button>
+            </div>
+            <p class="feedback-text" id="memoryFeedback" aria-live="polite"></p>
+          </form>
+        </section>
+
+        <section class="panel memory-list-panel">
+          <div class="section-head compact-head">
+            <div><p class="section-kicker">BEHAVIOR HISTORY</p><h2>出游记录</h2></div>
+            <span class="memory-count" id="memoryCount">0 次记录</span>
+          </div>
+          <div class="preference-summary" id="preferenceSummary">保存第一条记录后，这里会出现自动识别的偏好标签。</div>
+          <div class="memory-list" id="memoryList"></div>
+        </section>
+      </section>
+
+      <section class="panel recommendation-panel" id="recommendations">
+        <div class="recommendation-head">
+          <div>
+            <p class="section-kicker">EXPLAINABLE RECOMMENDATION</p>
+            <h2>下一次，可以这样安排</h2>
+            <p id="recommendationIntro">系统会综合偏好匹配、每日状态、近期重复和新鲜度生成三个方向。</p>
+          </div>
+          <button class="secondary-btn" id="refreshRecommendations" type="button">换一组灵感</button>
+        </div>
+        <div class="recommendation-grid" id="recommendationGrid"></div>
+        <p class="privacy-note">隐私说明：出游记录仅保存在当前设备的 LocalStorage 中，不会上传照片、位置或个人信息。</p>
+      </section>
+
+      <section class="panel discovery-panel" id="tag-discovery">
+        <div class="discovery-head">
+          <div>
+            <p class="section-kicker">EXPLORE BY TAG</p>
+            <h2><span id="discoveryTag">点击一个标签</span>，查看可执行建议</h2>
+            <p id="discoveryDescription">活动类标签会给出路线，消费类标签会提供附近搜索入口。</p>
+          </div>
+          <div class="discovery-source" id="discoverySource">公开演示默认使用静态路线与外部搜索</div>
+        </div>
+        <div class="discovery-quick-tags" aria-label="快捷探索标签">
+          <button type="button" data-discovery-tag="散步">散步路线</button>
+          <button type="button" data-discovery-tag="咖啡">咖啡</button>
+          <button type="button" data-discovery-tag="手作">手作</button>
+          <button type="button" data-discovery-tag="日料">日料</button>
+          <button type="button" data-discovery-tag="甜品">甜品</button>
+          <button type="button" data-discovery-tag="逛展">逛展</button>
+        </div>
+        <div class="discovery-status" id="discoveryStatus" aria-live="polite"></div>
+        <div class="discovery-results" id="discoveryResults"><div class="discovery-empty">选择一个标签，把抽象偏好转化为具体地点或路线。</div></div>
+        <p class="privacy-note">商家评分和营业信息以第三方平台实时页面为准；本项目不抓取或存储第三方用户内容。</p>
+      </section>
+
+      <footer class="project-footer">
+        <strong>MoodTrip</strong>
+        <p>一个用于展示用户画像、规则推荐与可解释设计的 AI 产品原型。</p>
+      </footer>
+    </main>
+
+    <script src="./src/config.js"></script>
+    <script src="./src/app.js"></script>
+    <script src="./src/memory.js"></script>
+    <script src="./src/discovery.js"></script>
+    <script src="./src/mood.js"></script>
+  </body>
+</html>
